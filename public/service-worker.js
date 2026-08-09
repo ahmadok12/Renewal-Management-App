@@ -1,4 +1,4 @@
-const CACHE = "renewal-shell-v3-smart-ui";
+const CACHE = "renewal-shell-v5-responsive-icons";
 const SHELL = ["./", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png"];
 
 self.addEventListener("install", event => {

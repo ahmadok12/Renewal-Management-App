@@ -2,6 +2,39 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
+import {
+  BadgeCheck,
+  Bell,
+  CalendarCheck,
+  CalendarDays,
+  CarFront,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  CreditCard,
+  FileText,
+  Globe2,
+  GraduationCap,
+  HeartPulse,
+  House,
+  KeyRound,
+  Laptop,
+  Lightbulb,
+  ListChecks,
+  MoreHorizontal,
+  PieChart,
+  Plus,
+  ReceiptText,
+  RefreshCw,
+  Search,
+  Settings,
+  Shapes,
+  ShieldCheck,
+  TrendingUp,
+  UsersRound,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import { auth, renewalStore } from "./supabase";
 import "./styles.css";
 
@@ -38,12 +71,29 @@ const categoryAccent: Record<Category, string> = {
   Property: "sand", Healthcare: "aqua", Education: "lilac", Other: "slate",
 };
 
-const categoryGlyph: Record<Category, string> = {
-  Documents: "▤", Cards: "▰", Subscriptions: "↻", Memberships: "◇",
-  Vehicle: "◆", Insurance: "⌂", Warranty: "✓", Utilities: "⌁",
-  Software: "⌘", Domains: "◎", Licenses: "✦", Taxes: "%",
-  Property: "▱", Healthcare: "+", Education: "◈", Other: "•",
+const categoryIcons: Record<Category, LucideIcon> = {
+  Documents: FileText,
+  Cards: CreditCard,
+  Subscriptions: RefreshCw,
+  Memberships: UsersRound,
+  Vehicle: CarFront,
+  Insurance: ShieldCheck,
+  Warranty: BadgeCheck,
+  Utilities: Lightbulb,
+  Software: Laptop,
+  Domains: Globe2,
+  Licenses: KeyRound,
+  Taxes: ReceiptText,
+  Property: House,
+  Healthcare: HeartPulse,
+  Education: GraduationCap,
+  Other: Shapes,
 };
+
+function CategoryIcon({ category }: { category: Category }) {
+  const Icon = categoryIcons[category];
+  return <Icon aria-hidden="true" focusable="false" strokeWidth={2.1} />;
+}
 
 function daysUntil(date: string) {
   return Math.ceil((new Date(`${date}T09:00:00`).getTime() - today.getTime()) / 86400000);
@@ -218,23 +268,23 @@ export default function Home() {
           <span className="brand-mark">R</span><span>Renewal<span className="brand-dot">.</span></span>
         </button>
         <nav className="main-nav" aria-label="Main navigation">
-          <NavButton active={view === "today"} glyph="⌁" label="Today" onClick={() => setView("today")} />
-          <NavButton active={view === "items"} glyph="▦" label="All items" count={items.length} onClick={() => setView("items")} />
-          <NavButton active={view === "calendar"} glyph="□" label="Calendar" onClick={() => setView("calendar")} />
-          <NavButton active={view === "family"} glyph="♙" label="Family" onClick={() => setView("family")} />
+          <NavButton active={view === "today"} icon={CalendarCheck} label="Today" onClick={() => setView("today")} />
+          <NavButton active={view === "items"} icon={ListChecks} label="All items" count={items.length} onClick={() => setView("items")} />
+          <NavButton active={view === "calendar"} icon={CalendarDays} label="Calendar" onClick={() => setView("calendar")} />
+          <NavButton active={view === "family"} icon={UsersRound} label="Family" onClick={() => setView("family")} />
         </nav>
         <div className="side-bottom">
-          <button className="nav-button" onClick={() => setView("settings")}><span className="nav-glyph">⚙</span>Settings</button>
-          <button className="profile-chip profile-button" onClick={() => auth.signOut()}><span className="avatar">{displayName.slice(0, 2).toUpperCase()}</span><span><strong>{displayName}</strong><small>Sign out</small></span><span className="more">•••</span></button>
+          <button className="nav-button" onClick={() => setView("settings")}><span className="nav-glyph"><Settings aria-hidden="true" /></span><span>Settings</span></button>
+          <button className="profile-chip profile-button" onClick={() => auth.signOut()}><span className="avatar">{displayName.slice(0, 2).toUpperCase()}</span><span><strong>{displayName}</strong><small>Sign out</small></span><span className="more"><MoreHorizontal aria-hidden="true" /></span></button>
         </div>
       </aside>
 
       <section className="content">
         <header className="topbar">
           <div className="mobile-brand"><span className="brand-mark small">R</span><strong>Renewal<span className="brand-dot">.</span></strong></div>
-          <div className="searchbox"><span>⌕</span><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search your renewals" /><kbd>⌘ K</kbd></div>
-          <button className="icon-button" aria-label="Notifications">♢<span className="notification-dot" /></button>
-          <button className="primary-button" onClick={() => setAddOpen(true)}><span>＋</span>Add item</button>
+          <div className="searchbox"><span><Search aria-hidden="true" /></span><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search your renewals" /><kbd>⌘ K</kbd></div>
+          <button className="icon-button" aria-label="Notifications"><Bell aria-hidden="true" /><span className="notification-dot" /></button>
+          <button className="primary-button" onClick={() => setAddOpen(true)}><span><Plus aria-hidden="true" /></span>Add item</button>
         </header>
 
         {view === "today" && <TodayView name={displayName} attention={attention} upcoming={upcoming} total={pkTotal30} onOpen={setDetail} onEdit={openEditor} onRenew={setRenewing} onSeeAll={() => setView("items")} onAdd={() => setAddOpen(true)} />}
@@ -245,18 +295,18 @@ export default function Home() {
       </section>
 
       <nav className="mobile-nav" aria-label="Mobile navigation">
-        <NavButton active={view === "today"} glyph="⌁" label="Today" onClick={() => setView("today")} />
-        <NavButton active={view === "items"} glyph="▦" label="Items" onClick={() => setView("items")} />
-        <button className="mobile-add" onClick={() => setAddOpen(true)}>＋</button>
-        <NavButton active={view === "calendar"} glyph="□" label="Calendar" onClick={() => setView("calendar")} />
-        <NavButton active={view === "family"} glyph="♙" label="Family" onClick={() => setView("family")} />
+        <NavButton active={view === "today"} icon={CalendarCheck} label="Today" onClick={() => setView("today")} />
+        <NavButton active={view === "items"} icon={ListChecks} label="Items" onClick={() => setView("items")} />
+        <button className="mobile-add" onClick={() => setAddOpen(true)} aria-label="Add item"><Plus aria-hidden="true" /></button>
+        <NavButton active={view === "calendar"} icon={CalendarDays} label="Calendar" onClick={() => setView("calendar")} />
+        <NavButton active={view === "family"} icon={UsersRound} label="Family" onClick={() => setView("family")} />
       </nav>
 
       {addOpen && <AddItemModal onClose={() => setAddOpen(false)} onSubmit={addItem} />}
       {editing && <AddItemModal initialItem={editing} onClose={() => setEditing(null)} onSubmit={updateItem} />}
       {renewing && <RenewModal item={renewing} onClose={() => setRenewing(null)} onComplete={completeRenewal} />}
       {detail && <DetailDrawer item={detail} onClose={() => setDetail(null)} onEdit={() => openEditor(detail)} onRenew={() => setRenewing(detail)} onDelete={() => deleteItem(detail)} />}
-      {toast && <div className="toast"><span>✓</span>{toast}</div>}
+      {toast && <div className="toast"><span><Check aria-hidden="true" /></span>{toast}</div>}
     </main>
   );
 }
@@ -283,8 +333,8 @@ function AuthScreen() {
   return <main className="auth-screen"><section className="auth-card"><div className="auth-brand"><span className="brand-mark">R</span><strong>Renewal<span className="brand-dot">.</span></strong></div><span className="modal-kicker">YOUR IMPORTANT DATES</span><h1>{mode === "signin" ? "Welcome back." : "Create your account."}</h1><p>Renewals, expiries and reminders—kept quietly under control.</p><form onSubmit={submit}>{mode === "signup" && <label className="field"><span>NAME</span><input name="name" autoComplete="name" required /></label>}<label className="field"><span>EMAIL</span><input name="email" type="email" autoComplete="email" required /></label><label className="field"><span>PASSWORD</span><input name="password" type="password" minLength={6} autoComplete={mode === "signin" ? "current-password" : "new-password"} required /></label>{message && <div className="auth-message">{message}</div>}<button className="primary-button full" disabled={busy}>{busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}</button></form><button className="auth-switch" onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setMessage(""); }}>{mode === "signin" ? "New here? Create an account" : "Already have an account? Sign in"}</button></section></main>;
 }
 
-function NavButton({ active, glyph, label, count, onClick }: { active: boolean; glyph: string; label: string; count?: number; onClick: () => void }) {
-  return <button className={`nav-button ${active ? "active" : ""}`} onClick={onClick}><span className="nav-glyph">{glyph}</span><span>{label}</span>{count !== undefined && <span className="nav-count">{count}</span>}</button>;
+function NavButton({ active, icon: Icon, label, count, onClick }: { active: boolean; icon: LucideIcon; label: string; count?: number; onClick: () => void }) {
+  return <button className={`nav-button ${active ? "active" : ""}`} onClick={onClick}><span className="nav-glyph"><Icon aria-hidden="true" /></span><span className="nav-label">{label}</span>{count !== undefined && <span className="nav-count">{count}</span>}</button>;
 }
 
 function TodayView({ name, attention, upcoming, total, onOpen, onEdit, onRenew, onSeeAll, onAdd }: { name: string; attention: RenewalItem[]; upcoming: RenewalItem[]; total: number; onOpen: (i: RenewalItem) => void; onEdit: (i: RenewalItem) => void; onRenew: (i: RenewalItem) => void; onSeeAll: () => void; onAdd: () => void }) {
@@ -294,9 +344,9 @@ function TodayView({ name, attention, upcoming, total, onOpen, onEdit, onRenew, 
   const yearly = upcoming.filter(i => i.currency === "PKR").reduce((sum, item) => sum + (item.amount || 0) * (item.frequency === "Monthly" ? 12 : item.frequency === "Quarterly" ? 4 : item.frequency === "Every 6 months" ? 2 : 1), 0);
   return <div className="page today-page">
     <div className="eyebrow">{todayLabel}</div>
-    <div className="page-title-row"><div><h1>Hello, {name}.</h1><p>{attention.length ? `${attention.length} ${attention.length === 1 ? "thing needs" : "things need"} your attention soon.` : "Your important dates, calmly organized."}</p></div><div className="mini-streak"><span>✓</span><div><strong>All caught up</strong><small>No overdue items</small></div></div></div>
+    <div className="page-title-row"><div><h1>Hello, {name}.</h1><p>{attention.length ? `${attention.length} ${attention.length === 1 ? "thing needs" : "things need"} your attention soon.` : "Your important dates, calmly organized."}</p></div><div className="mini-streak"><span><Check aria-hidden="true" /></span><div><strong>All caught up</strong><small>No overdue items</small></div></div></div>
 
-    {!upcoming.length && <section className="empty-state panel"><span className="category-icon xl">＋</span><div><h2>Add your first renewal</h2><p>Track a subscription, document, insurance policy, domain, tax, or any important expiry.</p></div><button className="primary-button" onClick={onAdd}>Add item</button></section>}
+    {!upcoming.length && <section className="empty-state panel"><span className="category-icon xl"><Plus aria-hidden="true" /></span><div><h2>Add your first renewal</h2><p>Track a subscription, document, insurance policy, domain, tax, or any important expiry.</p></div><button className="primary-button" onClick={onAdd}>Add item</button></section>}
 
     {!!upcoming.length && <section className="attention-section">
       <div className="section-heading"><div><span className="pulse-dot" /><h2>Needs attention</h2></div><button onClick={onSeeAll}>View all <span>→</span></button></div>
@@ -307,13 +357,13 @@ function TodayView({ name, attention, upcoming, total, onOpen, onEdit, onRenew, 
 
     {!!upcoming.length && <section className="dashboard-grid">
       <div className="panel upcoming-panel">
-        <div className="panel-heading"><div><span className="panel-icon">↗</span><div><h2>Coming up</h2><p>Your next important dates</p></div></div><button className="text-button" onClick={onSeeAll}>See calendar</button></div>
+        <div className="panel-heading"><div><span className="panel-icon"><TrendingUp aria-hidden="true" /></span><div><h2>Coming up</h2><p>Your next important dates</p></div></div><button className="text-button" onClick={onSeeAll}>See calendar</button></div>
         <div className="timeline-list">
-          {upcoming.slice(0, 4).map(item => <button key={item.id} className="timeline-row" onClick={() => onOpen(item)}><div className="date-tile"><strong>{new Date(`${item.dueDate}T09:00:00`).getDate()}</strong><small>{new Date(`${item.dueDate}T09:00:00`).toLocaleString("en", { month: "short" }).toUpperCase()}</small></div><span className={`category-icon ${item.accent}`}>{categoryGlyph[item.category]}</span><div className="timeline-info"><strong>{item.name}</strong><small>{item.category} · {item.person}</small></div>{item.amount && <strong className="row-amount">{money(item.amount, item.currency)}</strong>}<span className="row-arrow">›</span></button>)}
+          {upcoming.slice(0, 4).map(item => <button key={item.id} className="timeline-row" onClick={() => onOpen(item)}><div className="date-tile"><strong>{new Date(`${item.dueDate}T09:00:00`).getDate()}</strong><small>{new Date(`${item.dueDate}T09:00:00`).toLocaleString("en", { month: "short" }).toUpperCase()}</small></div><span className={`category-icon ${item.accent}`}><CategoryIcon category={item.category} /></span><div className="timeline-info"><strong>{item.name}</strong><small>{item.category} · {item.person}</small></div>{item.amount && <strong className="row-amount">{money(item.amount, item.currency)}</strong>}<span className="row-arrow"><ChevronRight aria-hidden="true" /></span></button>)}
         </div>
       </div>
       <div className="panel commitments-panel">
-        <div className="panel-heading"><div><span className="panel-icon pale">◒</span><div><h2>Renewal costs</h2><p>Know what&apos;s ahead</p></div></div><button className="dots">•••</button></div>
+        <div className="panel-heading"><div><span className="panel-icon pale"><PieChart aria-hidden="true" /></span><div><h2>Renewal costs</h2><p>Know what&apos;s ahead</p></div></div><button className="dots" aria-label="More cost options"><MoreHorizontal aria-hidden="true" /></button></div>
         <div className="cost-main"><small>NEXT 30 DAYS</small><strong>{money(total)}</strong><span><b>{yearly ? Math.round((total / yearly) * 100) : 0}%</b> of yearly total</span></div>
         <div className="cost-bars">{costRows.length ? costRows.map(([category, amount], index) => <div key={category}><span><b>{category}</b><em>{money(amount)}</em></span><i><u className={index ? "violet-bar" : ""} style={{ width: `${Math.max(8, Math.round((amount / Math.max(total, 1)) * 100))}%` }} /></i></div>) : <p className="no-costs">No PKR costs due in the next 30 days.</p>}</div>
         <div className="year-total"><span>Estimated next 12 months</span><strong>{money(yearly)}</strong></div>
@@ -328,20 +378,20 @@ function AttentionCard({ item, index, onOpen, onEdit, onRenew }: { item: Renewal
   const [menuOpen, setMenuOpen] = useState(false);
   return <article className={`attention-card priority-${index}`}>
     <button className="card-body" onClick={onOpen}>
-      <div className="card-top"><span className={`category-icon large ${item.accent}`}>{categoryGlyph[item.category]}</span><span className="urgency">{days <= 5 ? "Soon" : days <= 14 ? "Upcoming" : "Plan ahead"}</span></div>
+      <div className="card-top"><span className={`category-icon large ${item.accent}`}><CategoryIcon category={item.category} /></span><span className="urgency">{days <= 5 ? "Soon" : days <= 14 ? "Upcoming" : "Plan ahead"}</span></div>
       <h3>{item.name}</h3><p>{item.recurring ? "Renews" : "Expires"} in <b>{days} days</b></p>
       <div className="card-meta"><span>{humanDate(item.dueDate)}</span>{item.amount && <span>{money(item.amount, item.currency)}</span>}</div>
     </button>
-    <div className="card-actions"><button onClick={onRenew}>Mark renewed</button><button className="edit-card-button" onClick={onEdit}>Edit</button><button className="more-button" aria-label={`More options for ${item.name}`} aria-expanded={menuOpen} onClick={() => setMenuOpen(open => !open)}>•••</button></div>
+    <div className="card-actions"><button onClick={onRenew}>Mark renewed</button><button className="edit-card-button" onClick={onEdit}>Edit</button><button className="more-button" aria-label={`More options for ${item.name}`} aria-expanded={menuOpen} onClick={() => setMenuOpen(open => !open)}><MoreHorizontal aria-hidden="true" /></button></div>
     {menuOpen && <div className="card-menu" role="menu"><button role="menuitem" onClick={() => { setMenuOpen(false); onOpen(); }}>View details</button><button role="menuitem" onClick={() => { setMenuOpen(false); onEdit(); }}>Edit item</button></div>}
   </article>;
 }
 
 function ItemsView({ items, filter, setFilter, onOpen, onRenew, onAdd }: { items: RenewalItem[]; filter: string; setFilter: (s: string) => void; onOpen: (i: RenewalItem) => void; onRenew: (i: RenewalItem) => void; onAdd: () => void }) {
   const filters = ["All", "Documents", "Cards", "Subscriptions", "Memberships", "Insurance"];
-  return <div className="page"><div className="eyebrow">YOUR IMPORTANT DATES</div><div className="page-title-row compact"><div><h1>All items</h1><p>Everything you need to renew, replace or remember.</p></div><button className="secondary-button" onClick={onAdd}>＋ Add item</button></div>
+  return <div className="page"><div className="eyebrow">YOUR IMPORTANT DATES</div><div className="page-title-row compact"><div><h1>All items</h1><p>Everything you need to renew, replace or remember.</p></div><button className="secondary-button" onClick={onAdd}><Plus aria-hidden="true" /> Add item</button></div>
     <div className="filter-row">{filters.map(f => <button key={f} className={filter === f ? "selected" : ""} onClick={() => setFilter(f)}>{f}</button>)}</div>
-    <div className="items-table panel"><div className="table-head"><span>Item</span><span>Owner</span><span>Next date</span><span>Amount</span><span>Status</span><span /></div>{items.map(item => { const days = daysUntil(item.dueDate); return <div className="item-row" key={item.id}><button className="item-name" onClick={() => onOpen(item)}><span className={`category-icon ${item.accent}`}>{categoryGlyph[item.category]}</span><span><strong>{item.name}</strong><small>{item.category} · {item.frequency}</small></span></button><span>{item.person}</span><span>{humanDate(item.dueDate, true)}</span><strong>{item.amount ? money(item.amount, item.currency) : "—"}</strong><span className={`status ${days < 15 ? "soon" : "safe"}`}>{days < 15 ? `${days} days` : "On track"}</span><button className="renew-link" onClick={() => onRenew(item)}>Renew</button></div>})}</div>
+    <div className="items-table panel"><div className="table-head"><span>Item</span><span>Owner</span><span>Next date</span><span>Amount</span><span>Status</span><span /></div>{items.map(item => { const days = daysUntil(item.dueDate); return <div className="item-row" key={item.id}><button className="item-name" onClick={() => onOpen(item)}><span className={`category-icon ${item.accent}`}><CategoryIcon category={item.category} /></span><span><strong>{item.name}</strong><small>{item.category} · {item.frequency}</small></span></button><span>{item.person}</span><span>{humanDate(item.dueDate, true)}</span><strong>{item.amount ? money(item.amount, item.currency) : "—"}</strong><span className={`status ${days < 15 ? "soon" : "safe"}`}>{days < 15 ? `${days} days` : "On track"}</span><button className="renew-link" onClick={() => onRenew(item)}>Renew</button></div>})}</div>
   </div>;
 }
 
@@ -356,14 +406,14 @@ function CalendarView({ items, onOpen }: { items: RenewalItem[]; onOpen: (i: Ren
   const cells = Array.from({ length: new Date(year, month + 1, 0).getDate() }, (_, i) => i + 1);
   const monthLabel = new Intl.DateTimeFormat("en", { month: "long", year: "numeric" }).format(cursor);
   const moveMonth = (by: number) => setCursor(new Date(year, month + by, 1));
-  return <div className="page calendar-page"><div className="eyebrow">ONE MONTH AT A GLANCE</div><div className="page-title-row compact"><div><h1>Renewal calendar</h1><p>See every payment, expiry and renewal in context.</p></div><div className="month-control"><button onClick={() => moveMonth(-1)}>‹</button><strong>{monthLabel}</strong><button onClick={() => moveMonth(1)}>›</button></div></div>
+  return <div className="page calendar-page"><div className="eyebrow">ONE MONTH AT A GLANCE</div><div className="page-title-row compact"><div><h1>Renewal calendar</h1><p>See every payment, expiry and renewal in context.</p></div><div className="month-control"><button onClick={() => moveMonth(-1)} aria-label="Previous month"><ChevronLeft aria-hidden="true" /></button><strong>{monthLabel}</strong><button onClick={() => moveMonth(1)} aria-label="Next month"><ChevronRight aria-hidden="true" /></button></div></div>
     <div className="calendar panel"><div className="weekdays">{["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"].map(d => <span key={d}>{d}</span>)}</div><div className="calendar-grid">{Array.from({ length: blanks }).map((_, i) => <div className="day muted" key={`blank-${i}`} />)}{cells.map(day => { const events = monthItems.filter(i => Number(i.dueDate.slice(-2)) === day); const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear(); return <div className={`day ${isToday ? "today" : ""}`} key={day}><span className="day-number">{day}</span>{events.map(item => <button key={item.id} className={`calendar-event ${item.accent}`} onClick={() => onOpen(item)}><i />{item.name}<small>{item.amount ? money(item.amount, item.currency) : item.category}</small></button>)}</div>})}</div></div>
   </div>;
 }
 
 function FamilyView({ items }: { items: RenewalItem[] }) {
   const members = [{ name: "Ahmad", relation: "You", initials: "AI", color: "coral" }, { name: "Family", relation: "Shared", initials: "FM", color: "violet" }, { name: "Business", relation: "Work", initials: "SC", color: "blue" }];
-  return <div className="page"><div className="eyebrow">PEOPLE & RESPONSIBILITIES</div><div className="page-title-row compact"><div><h1>Family & groups</h1><p>Keep everyone&apos;s important dates together.</p></div><button className="secondary-button">＋ Add person</button></div><div className="member-grid">{members.map(member => { const memberItems = items.filter(i => i.person === member.name); return <article className="member-card panel" key={member.name}><div className="member-top"><span className={`member-avatar ${member.color}`}>{member.initials}</span><span><strong>{member.name}</strong><small>{member.relation}</small></span><button>•••</button></div><div className="member-stats"><div><strong>{memberItems.length}</strong><small>Items</small></div><div><strong>{memberItems.filter(i => daysUntil(i.dueDate) < 60).length}</strong><small>Due soon</small></div></div><div className="member-list">{memberItems.slice(0, 3).map(i => <div key={i.id}><span className={`tiny-dot ${i.accent}`} /><span>{i.name}</span><small>{humanDate(i.dueDate)}</small></div>)}</div></article>})}</div></div>;
+  return <div className="page"><div className="eyebrow">PEOPLE & RESPONSIBILITIES</div><div className="page-title-row compact"><div><h1>Family & groups</h1><p>Keep everyone&apos;s important dates together.</p></div><button className="secondary-button"><Plus aria-hidden="true" /> Add person</button></div><div className="member-grid">{members.map(member => { const memberItems = items.filter(i => i.person === member.name); return <article className="member-card panel" key={member.name}><div className="member-top"><span className={`member-avatar ${member.color}`}>{member.initials}</span><span><strong>{member.name}</strong><small>{member.relation}</small></span><button aria-label={`More options for ${member.name}`}><MoreHorizontal aria-hidden="true" /></button></div><div className="member-stats"><div><strong>{memberItems.length}</strong><small>Items</small></div><div><strong>{memberItems.filter(i => daysUntil(i.dueDate) < 60).length}</strong><small>Due soon</small></div></div><div className="member-list">{memberItems.slice(0, 3).map(i => <div key={i.id}><span className={`tiny-dot ${i.accent}`} /><span>{i.name}</span><small>{humanDate(i.dueDate)}</small></div>)}</div></article>})}</div></div>;
 }
 
 function SettingsView({ flash }: { flash: (s: string) => void }) {
@@ -426,11 +476,11 @@ function AddItemModal({ onClose, onSubmit, initialItem }: { onClose: () => void;
 
   return <div className="modal-backdrop" onMouseDown={e => e.target === e.currentTarget && onClose()}>
     <div className="modal add-modal">
-      <div className="modal-header"><div><span className="modal-kicker">{initialItem ? "EDIT ITEM" : "NEW ITEM"} · STEP {step} OF 2</span><h2>{step === 1 ? (initialItem ? "Edit item details" : "What do you want to remember?") : "Set the date and reminders"}</h2></div><button type="button" className="close-button" onClick={onClose}>×</button></div>
+      <div className="modal-header"><div><span className="modal-kicker">{initialItem ? "EDIT ITEM" : "NEW ITEM"} · STEP {step} OF 2</span><h2>{step === 1 ? (initialItem ? "Edit item details" : "What do you want to remember?") : "Set the date and reminders"}</h2></div><button type="button" className="close-button" onClick={onClose} aria-label="Close"><X aria-hidden="true" /></button></div>
       <form onSubmit={onSubmit}>
         {step === 1 ? <div className="form-step">
           <label className="field"><span>ITEM NAME</span><input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Netflix, Passport, Car insurance" required autoFocus /></label>
-          <div className="field"><span>CATEGORY</span><div className="category-picker">{(Object.keys(categoryAccent) as Category[]).map(c => <button type="button" key={c} className={category === c ? "selected" : ""} onClick={() => setCategory(c)}><span className={`category-icon ${categoryAccent[c]}`}>{categoryGlyph[c]}</span>{c}</button>)}</div></div>
+          <div className="field"><span>CATEGORY</span><div className="category-picker">{(Object.keys(categoryAccent) as Category[]).map(c => <button type="button" key={c} className={category === c ? "selected" : ""} onClick={() => setCategory(c)}><span className={`category-icon ${categoryAccent[c]}`}><CategoryIcon category={c} /></span>{c}</button>)}</div></div>
           <label className="field"><span>WHO IS THIS FOR?</span><select value={person} onChange={e => setPerson(e.target.value)}><option>Ahmad</option><option>Family</option><option>Business</option></select></label>
           <div className="modal-footer"><span /><button type="button" className="primary-button" disabled={!name.trim()} onClick={() => setStep(2)}>Continue <span>→</span></button></div>
         </div> : <div className="form-step">
@@ -451,7 +501,7 @@ function AddItemModal({ onClose, onSubmit, initialItem }: { onClose: () => void;
               {reminder.mode === "date" && <input className="reminder-date" type="date" value={reminder.date || ""} onChange={e => updateReminder(reminder.id, { date: e.target.value })} />}
               <button type="button" className="save-reminder" onClick={() => saveReminder(reminder.id)}>Save reminder</button>
             </div>)}</div>
-            {reminders.every(reminder => reminder.saved) && <button type="button" className="add-another-reminder" onClick={addReminder}><span>＋</span>Add another reminder</button>}
+            {reminders.every(reminder => reminder.saved) && <button type="button" className="add-another-reminder" onClick={addReminder}><span><Plus aria-hidden="true" /></span>Add another reminder</button>}
             {savedReminders.length === 0 && <small className="reminder-hint">Save at least one reminder to continue.</small>}
           </div>
           <label className="field"><span>NOTES <em>OPTIONAL</em></span><textarea name="notes" placeholder="Anything useful for renewal…" defaultValue={initialItem?.notes || ""} /></label>
@@ -468,10 +518,10 @@ function RenewModal({ item, onClose, onComplete }: { item: RenewalItem; onClose:
   const moved = nextDate(item.dueDate, item.frequency, actual);
   const [choice, setChoice] = useState<"fixed" | "actual" | "custom">(item.renewalRule === "actual" ? "actual" : "fixed");
   const [custom, setCustom] = useState(moved);
-  return <div className="modal-backdrop"><div className="modal renew-modal"><button className="close-button floating" onClick={onClose}>×</button><div className={`renew-hero ${item.accent}`}><span>{categoryGlyph[item.category]}</span></div><span className="modal-kicker">RECORD RENEWAL</span><h2>{item.name} renewed?</h2><p>We&apos;ll save today as the actual renewal date and preserve the original schedule in history.</p><div className="renew-summary"><div><small>SCHEDULED</small><strong>{humanDate(item.dueDate, true)}</strong></div><span>→</span><div><small>RENEWED</small><strong>Today</strong></div></div><div className="choice-list"><button className={choice === "fixed" ? "selected" : ""} onClick={() => setChoice("fixed")}><i /><span><strong>{humanDate(fixed, true)}</strong><small>Keep original schedule</small></span><b>Fixed</b></button><button className={choice === "actual" ? "selected" : ""} onClick={() => setChoice("actual")}><i /><span><strong>{humanDate(moved, true)}</strong><small>Start from today&apos;s renewal</small></span><b>Flexible</b></button><button className={choice === "custom" ? "selected" : ""} onClick={() => setChoice("custom")}><i /><span><strong>Choose another date</strong><small>Set the exact next due date</small></span></button></div>{choice === "custom" && <input className="custom-date" type="date" value={custom} onChange={e => setCustom(e.target.value)} />}<button className="primary-button full" onClick={() => onComplete(choice, custom)}>Record renewal</button></div></div>;
+  return <div className="modal-backdrop"><div className="modal renew-modal"><button className="close-button floating" onClick={onClose} aria-label="Close"><X aria-hidden="true" /></button><div className={`renew-hero ${item.accent}`}><span><CategoryIcon category={item.category} /></span></div><span className="modal-kicker">RECORD RENEWAL</span><h2>{item.name} renewed?</h2><p>We&apos;ll save today as the actual renewal date and preserve the original schedule in history.</p><div className="renew-summary"><div><small>SCHEDULED</small><strong>{humanDate(item.dueDate, true)}</strong></div><span>→</span><div><small>RENEWED</small><strong>Today</strong></div></div><div className="choice-list"><button className={choice === "fixed" ? "selected" : ""} onClick={() => setChoice("fixed")}><i /><span><strong>{humanDate(fixed, true)}</strong><small>Keep original schedule</small></span><b>Fixed</b></button><button className={choice === "actual" ? "selected" : ""} onClick={() => setChoice("actual")}><i /><span><strong>{humanDate(moved, true)}</strong><small>Start from today&apos;s renewal</small></span><b>Flexible</b></button><button className={choice === "custom" ? "selected" : ""} onClick={() => setChoice("custom")}><i /><span><strong>Choose another date</strong><small>Set the exact next due date</small></span></button></div>{choice === "custom" && <input className="custom-date" type="date" value={custom} onChange={e => setCustom(e.target.value)} />}<button className="primary-button full" onClick={() => onComplete(choice, custom)}>Record renewal</button></div></div>;
 }
 
 function DetailDrawer({ item, onClose, onEdit, onRenew, onDelete }: { item: RenewalItem; onClose: () => void; onEdit: () => void; onRenew: () => void; onDelete: () => void }) {
   const reminderPlan = item.reminders?.length ? item.reminders.map(describeReminder).join(" · ") : item.reminderDays.map(d => `${d}d before`).join(" · ");
-  return <div className="drawer-backdrop" onMouseDown={e => e.target === e.currentTarget && onClose()}><aside className="drawer"><div className="drawer-top"><button className="close-button" onClick={onClose}>×</button><span className={`category-icon xl ${item.accent}`}>{categoryGlyph[item.category]}</span><span className="category-label">{item.category}</span><h2>{item.name}</h2><p>{item.person}</p></div><div className="due-feature"><small>NEXT {item.recurring ? "RENEWAL" : "EXPIRY"}</small><strong>{humanDate(item.dueDate, true)}</strong><span>{daysUntil(item.dueDate)} days from now</span></div><div className="detail-list"><div><span>Amount</span><strong>{item.amount ? money(item.amount, item.currency) : "Not set"}</strong></div><div><span>Frequency</span><strong>{item.frequency}</strong></div><div><span>Reminder plan</span><strong>{reminderPlan || "None"}</strong></div><div><span>Late renewal rule</span><strong>{item.renewalRule === "ask" ? "Ask each time" : item.renewalRule === "fixed" ? "Keep schedule" : "From actual date"}</strong></div></div>{item.notes && <div className="notes-box"><small>NOTES</small><p>{item.notes}</p></div>}<div className="drawer-actions"><button className="primary-button" onClick={onRenew}>✓ Mark renewed</button><button className="secondary-button edit-drawer-button" onClick={onEdit}>Edit item</button><button className="danger-button" onClick={onDelete}>Delete item</button></div></aside></div>;
+  return <div className="drawer-backdrop" onMouseDown={e => e.target === e.currentTarget && onClose()}><aside className="drawer"><div className="drawer-top"><button className="close-button" onClick={onClose} aria-label="Close"><X aria-hidden="true" /></button><span className={`category-icon xl ${item.accent}`}><CategoryIcon category={item.category} /></span><span className="category-label">{item.category}</span><h2>{item.name}</h2><p>{item.person}</p></div><div className="due-feature"><small>NEXT {item.recurring ? "RENEWAL" : "EXPIRY"}</small><strong>{humanDate(item.dueDate, true)}</strong><span>{daysUntil(item.dueDate)} days from now</span></div><div className="detail-list"><div><span>Amount</span><strong>{item.amount ? money(item.amount, item.currency) : "Not set"}</strong></div><div><span>Frequency</span><strong>{item.frequency}</strong></div><div><span>Reminder plan</span><strong>{reminderPlan || "None"}</strong></div><div><span>Late renewal rule</span><strong>{item.renewalRule === "ask" ? "Ask each time" : item.renewalRule === "fixed" ? "Keep schedule" : "From actual date"}</strong></div></div>{item.notes && <div className="notes-box"><small>NOTES</small><p>{item.notes}</p></div>}<div className="drawer-actions"><button className="primary-button" onClick={onRenew}><Check aria-hidden="true" /> Mark renewed</button><button className="secondary-button edit-drawer-button" onClick={onEdit}>Edit item</button><button className="danger-button" onClick={onDelete}>Delete item</button></div></aside></div>;
 }

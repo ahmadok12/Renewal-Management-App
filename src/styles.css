@@ -126,6 +126,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .card-menu button:hover { background: #f0f0ee; color: var(--red); }
 
 .category-icon { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: #ededeb !important; color: var(--ink) !important; font-size: 13px; font-weight: 650; }
+.category-icon svg { width: 52%; height: 52%; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
 .category-icon.large { width: 40px; height: 40px; }
 .category-icon.xl { width: 54px; height: 54px; font-size: 19px; }
 .attention-card:first-child .category-icon, .day.today .day-number, .calendar-event.red { background: var(--red) !important; color: #fff !important; }
@@ -298,6 +299,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .renew-modal { position: relative; width: min(470px, 100%); padding: 31px; text-align: center; }
 .close-button.floating { position: absolute; top: 17px; right: 17px; }
 .renew-hero { width: 54px; height: 54px; display: grid; place-items: center; margin: 0 auto 15px; border-radius: 50%; background: var(--red) !important; color: #fff !important; font-size: 19px; }
+.renew-hero svg { width: 26px; height: 26px; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
 .renew-modal h2 { margin: 8px 0; font-size: 30px; font-weight: 520; letter-spacing: -.06em; }
 .renew-modal > p { max-width: 350px; margin: 0 auto 19px; color: #777; font-size: 9px; line-height: 1.7; }
 .renew-summary { display: grid; grid-template-columns: 1fr 24px 1fr; align-items: center; padding: 14px; margin-bottom: 15px; border: 1px solid #d9d9d6; border-radius: 2px; background: transparent; }
@@ -714,4 +716,113 @@ button, input, select, textarea { font-size: 1rem; }
   .page-title-row h1 { font-size: 2.2rem; }
   .mobile-nav { left: 6px; right: 6px; }
   .mobile-nav .nav-button { font-size: .68rem; }
+}
+
+/* V1.3 — consistent SVG controls and narrow-screen overflow protection */
+.nav-glyph,
+.panel-icon,
+.icon-button,
+.more,
+.row-arrow,
+.dots,
+.mobile-add,
+.close-button {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.nav-glyph svg { width: 21px; height: 21px; stroke-width: 2; }
+.panel-icon svg { width: 21px; height: 21px; }
+.icon-button > svg { width: 22px; height: 22px; }
+.more svg, .dots svg { width: 22px; height: 22px; }
+.row-arrow svg { width: 19px; height: 19px; }
+.mobile-add svg { width: 27px; height: 27px; }
+.close-button svg { width: 22px; height: 22px; }
+.mini-streak svg, .toast svg { width: 18px; height: 18px; }
+.primary-button svg, .secondary-button svg, .drawer-actions svg,
+.add-another-reminder svg { width: 19px; height: 19px; flex: 0 0 auto; }
+
+.nav-button,
+.primary-button,
+.secondary-button,
+.filter-row button,
+.status,
+.urgency,
+.card-meta span,
+.calendar-event,
+.saved-reminder,
+.profile-chip,
+.month-control,
+.mini-streak {
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.nav-label,
+.profile-chip > span:nth-child(2),
+.timeline-info,
+.item-name > span:last-child,
+.member-top > span:nth-child(2),
+.saved-reminder strong {
+  min-width: 0;
+}
+
+.nav-label,
+.profile-chip strong,
+.profile-chip small,
+.timeline-info strong,
+.timeline-info small,
+.item-name strong,
+.item-name small,
+.member-top strong,
+.member-top small,
+.saved-reminder strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-event {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-event small {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.primary-button,
+.secondary-button,
+.drawer-actions button,
+.add-another-reminder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+@media (max-width: 760px) {
+  .mobile-nav .nav-button {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .mobile-nav .nav-label {
+    display: block;
+    width: 100%;
+    text-align: center;
+  }
+
+  .mobile-nav .nav-glyph svg { width: 20px; height: 20px; }
+  .calendar-event { padding-inline: 7px; }
+  .calendar-grid > .day { min-width: 0; overflow: hidden; }
 }
