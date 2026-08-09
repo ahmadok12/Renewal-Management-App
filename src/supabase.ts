@@ -88,6 +88,16 @@ export const renewalStore = {
     fail(error);
     return toItem(data);
   },
+  async update(id: string, item: Record<string, any>) {
+    const { data, error } = await supabase
+      .from("renewal_items")
+      .update(toRow(item))
+      .eq("id", id)
+      .select()
+      .single();
+    fail(error);
+    return toItem(data);
+  },
   async renew(id: string, event: { actualDate: string; nextDate: string; scheduledDate: string; amountPaid?: number; rule: string }) {
     const { data, error } = await supabase.rpc("record_renewal", {
       p_item_id: id,

@@ -83,6 +83,7 @@ export default function Home() {
   const [view, setView] = useState<View>("today");
   const [items, setItems] = useState<RenewalItem[]>([]);
   const [addOpen, setAddOpen] = useState(false);
+  const [editing, setEditing] = useState<RenewalItem | null>(null);
   const [renewing, setRenewing] = useState<RenewalItem | null>(null);
   const [detail, setDetail] = useState<RenewalItem | null>(null);
   const [search, setSearch] = useState("");
@@ -167,6 +168,44 @@ export default function Home() {
     }
   }
 
+  async function updateItem(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!editing) return;
+    const data = new FormData(event.currentTarget);
+    const category = data.get("category") as Category;
+    const changes: RenewalItem = {
+      ...editing,
+      name: String(data.get("name")),
+      category,
+      dueDate: String(data.get("dueDate")),
+      startDate: String(data.get("startDate") || ""),
+      amount: data.get("amount") ? Number(data.get("amount")) : undefined,
+      currency: data.get("currency") as "PKR" | "USD",
+      recurring: data.get("recurring") === "on",
+      frequency: String(data.get("frequency")),
+      reminderDays: String(data.get("reminderDays")).split(",").map(v => Number(v.trim())).filter(Boolean),
+      reminders: JSON.parse(String(data.get("reminders") || "[]")) as Reminder[],
+      person: String(data.get("person")),
+      notes: String(data.get("notes") || ""),
+      renewalRule: data.get("renewalRule") as RenewalRule,
+      accent: categoryAccent[category],
+    };
+    try {
+      const saved = await renewalStore.update(editing.id, changes);
+      setItems(current => current.map(item => item.id === saved.id ? saved : item));
+      setEditing(null);
+      setDetail(null);
+      flash(`${saved.name} was updated`);
+    } catch {
+      flash("Could not update this item. Please try again.");
+    }
+  }
+
+  function openEditor(item: RenewalItem) {
+    setDetail(null);
+    setEditing(item);
+  }
+
   if (!authReady) return <div className="auth-screen"><div className="auth-card"><span className="brand-mark">R</span><p>Loading your renewals…</p></div></div>;
   if (!user) return <AuthScreen />;
 
@@ -198,7 +237,7 @@ export default function Home() {
           <button className="primary-button" onClick={() => setAddOpen(true)}><span>＋</span>Add item</button>
         </header>
 
-        {view === "today" && <TodayView name={displayName} attention={attention} upcoming={upcoming} total={pkTotal30} onOpen={setDetail} onRenew={setRenewing} onSeeAll={() => setView("items")} onAdd={() => setAddOpen(true)} />}
+        {view === "today" && <TodayView name={displayName} attention={attention} upcoming={upcoming} total={pkTotal30} onOpen={setDetail} onEdit={openEditor} onRenew={setRenewing} onSeeAll={() => setView("items")} onAdd={() => setAddOpen(true)} />}
         {view === "items" && <ItemsView items={filtered} filter={filter} setFilter={setFilter} onOpen={setDetail} onRenew={setRenewing} onAdd={() => setAddOpen(true)} />}
         {view === "calendar" && <CalendarView items={items} onOpen={setDetail} />}
         {view === "family" && <FamilyView items={items} />}
@@ -214,8 +253,9 @@ export default function Home() {
       </nav>
 
       {addOpen && <AddItemModal onClose={() => setAddOpen(false)} onSubmit={addItem} />}
+      {editing && <AddItemModal initialItem={editing} onClose={() => setEditing(null)} onSubmit={updateItem} />}
       {renewing && <RenewModal item={renewing} onClose={() => setRenewing(null)} onComplete={completeRenewal} />}
-      {detail && <DetailDrawer item={detail} onClose={() => setDetail(null)} onRenew={() => setRenewing(detail)} onDelete={() => deleteItem(detail)} />}
+      {detail && <DetailDrawer item={detail} onClose={() => setDetail(null)} onEdit={() => openEditor(detail)} onRenew={() => setRenewing(detail)} onDelete={() => deleteItem(detail)} />}
       {toast && <div className="toast"><span>✓</span>{toast}</div>}
     </main>
   );
@@ -247,7 +287,7 @@ function NavButton({ active, glyph, label, count, onClick }: { active: boolean; 
   return <button className={`nav-button ${active ? "active" : ""}`} onClick={onClick}><span className="nav-glyph">{glyph}</span><span>{label}</span>{count !== undefined && <span className="nav-count">{count}</span>}</button>;
 }
 
-function TodayView({ name, attention, upcoming, total, onOpen, onRenew, onSeeAll, onAdd }: { name: string; attention: RenewalItem[]; upcoming: RenewalItem[]; total: number; onOpen: (i: RenewalItem) => void; onRenew: (i: RenewalItem) => void; onSeeAll: () => void; onAdd: () => void }) {
+function TodayView({ name, attention, upcoming, total, onOpen, onEdit, onRenew, onSeeAll, onAdd }: { name: string; attention: RenewalItem[]; upcoming: RenewalItem[]; total: number; onOpen: (i: RenewalItem) => void; onEdit: (i: RenewalItem) => void; onRenew: (i: RenewalItem) => void; onSeeAll: () => void; onAdd: () => void }) {
   const todayLabel = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long" }).format(today).toUpperCase();
   const costMap = upcoming.filter(i => daysUntil(i.dueDate) <= 30 && i.currency === "PKR").reduce<Record<string, number>>((sum, item) => ({ ...sum, [item.category]: (sum[item.category] || 0) + (item.amount || 0) }), {});
   const costRows = Object.entries(costMap).sort((a, b) => b[1] - a[1]).slice(0, 3);
@@ -261,7 +301,7 @@ function TodayView({ name, attention, upcoming, total, onOpen, onRenew, onSeeAll
     {!!upcoming.length && <section className="attention-section">
       <div className="section-heading"><div><span className="pulse-dot" /><h2>Needs attention</h2></div><button onClick={onSeeAll}>View all <span>→</span></button></div>
       <div className="attention-grid">
-        {attention.slice(0, 3).map((item, index) => <AttentionCard key={item.id} item={item} index={index} onOpen={() => onOpen(item)} onRenew={() => onRenew(item)} />)}
+        {attention.slice(0, 3).map((item, index) => <AttentionCard key={item.id} item={item} index={index} onOpen={() => onOpen(item)} onEdit={() => onEdit(item)} onRenew={() => onRenew(item)} />)}
       </div>
     </section>}
 
@@ -283,15 +323,17 @@ function TodayView({ name, attention, upcoming, total, onOpen, onRenew, onSeeAll
   </div>;
 }
 
-function AttentionCard({ item, index, onOpen, onRenew }: { item: RenewalItem; index: number; onOpen: () => void; onRenew: () => void }) {
+function AttentionCard({ item, index, onOpen, onEdit, onRenew }: { item: RenewalItem; index: number; onOpen: () => void; onEdit: () => void; onRenew: () => void }) {
   const days = daysUntil(item.dueDate);
+  const [menuOpen, setMenuOpen] = useState(false);
   return <article className={`attention-card priority-${index}`}>
     <button className="card-body" onClick={onOpen}>
       <div className="card-top"><span className={`category-icon large ${item.accent}`}>{categoryGlyph[item.category]}</span><span className="urgency">{days <= 5 ? "Soon" : days <= 14 ? "Upcoming" : "Plan ahead"}</span></div>
       <h3>{item.name}</h3><p>{item.recurring ? "Renews" : "Expires"} in <b>{days} days</b></p>
       <div className="card-meta"><span>{humanDate(item.dueDate)}</span>{item.amount && <span>{money(item.amount, item.currency)}</span>}</div>
     </button>
-    <div className="card-actions"><button onClick={onRenew}>Mark renewed</button><button aria-label={`More options for ${item.name}`}>•••</button></div>
+    <div className="card-actions"><button onClick={onRenew}>Mark renewed</button><button className="edit-card-button" onClick={onEdit}>Edit</button><button className="more-button" aria-label={`More options for ${item.name}`} aria-expanded={menuOpen} onClick={() => setMenuOpen(open => !open)}>•••</button></div>
+    {menuOpen && <div className="card-menu" role="menu"><button role="menuitem" onClick={() => { setMenuOpen(false); onOpen(); }}>View details</button><button role="menuitem" onClick={() => { setMenuOpen(false); onEdit(); }}>Edit item</button></div>}
   </article>;
 }
 
@@ -314,7 +356,7 @@ function CalendarView({ items, onOpen }: { items: RenewalItem[]; onOpen: (i: Ren
   const cells = Array.from({ length: new Date(year, month + 1, 0).getDate() }, (_, i) => i + 1);
   const monthLabel = new Intl.DateTimeFormat("en", { month: "long", year: "numeric" }).format(cursor);
   const moveMonth = (by: number) => setCursor(new Date(year, month + by, 1));
-  return <div className="page"><div className="eyebrow">ONE MONTH AT A GLANCE</div><div className="page-title-row compact"><div><h1>Renewal calendar</h1><p>See every payment, expiry and renewal in context.</p></div><div className="month-control"><button onClick={() => moveMonth(-1)}>‹</button><strong>{monthLabel}</strong><button onClick={() => moveMonth(1)}>›</button></div></div>
+  return <div className="page calendar-page"><div className="eyebrow">ONE MONTH AT A GLANCE</div><div className="page-title-row compact"><div><h1>Renewal calendar</h1><p>See every payment, expiry and renewal in context.</p></div><div className="month-control"><button onClick={() => moveMonth(-1)}>‹</button><strong>{monthLabel}</strong><button onClick={() => moveMonth(1)}>›</button></div></div>
     <div className="calendar panel"><div className="weekdays">{["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"].map(d => <span key={d}>{d}</span>)}</div><div className="calendar-grid">{Array.from({ length: blanks }).map((_, i) => <div className="day muted" key={`blank-${i}`} />)}{cells.map(day => { const events = monthItems.filter(i => Number(i.dueDate.slice(-2)) === day); const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear(); return <div className={`day ${isToday ? "today" : ""}`} key={day}><span className="day-number">{day}</span>{events.map(item => <button key={item.id} className={`calendar-event ${item.accent}`} onClick={() => onOpen(item)}><i />{item.name}<small>{item.amount ? money(item.amount, item.currency) : item.category}</small></button>)}</div>})}</div></div>
   </div>;
 }
@@ -333,16 +375,21 @@ function SettingToggle({ title, detail, checked }: { title: string; detail: stri
   return <div className="setting-row"><span><strong>{title}</strong><small>{detail}</small></span><button role="switch" aria-checked={on} className={`toggle ${on ? "on" : ""}`} onClick={() => setOn(!on)}><i /></button></div>;
 }
 
-function AddItemModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (e: FormEvent<HTMLFormElement>) => void }) {
+function AddItemModal({ onClose, onSubmit, initialItem }: { onClose: () => void; onSubmit: (e: FormEvent<HTMLFormElement>) => void; initialItem?: RenewalItem }) {
   const [step, setStep] = useState(1);
-  const [category, setCategory] = useState<Category>("Subscriptions");
-  const [recurring, setRecurring] = useState(true);
-  const [frequency, setFrequency] = useState("Monthly");
-  const [name, setName] = useState("");
-  const [person, setPerson] = useState("Ahmad");
-  const [reminders, setReminders] = useState<Array<Reminder & { id: number; saved: boolean }>>([
-    { id: 1, mode: "relative", days: 7, saved: false },
-  ]);
+  const [category, setCategory] = useState<Category>(initialItem?.category || "Subscriptions");
+  const [recurring, setRecurring] = useState(initialItem?.recurring ?? true);
+  const [frequency, setFrequency] = useState(initialItem?.frequency || "Monthly");
+  const [name, setName] = useState(initialItem?.name || "");
+  const [person, setPerson] = useState(initialItem?.person || "Ahmad");
+  const [reminders, setReminders] = useState<Array<Reminder & { id: number; saved: boolean }>>(() => {
+    const existing = initialItem?.reminders?.length
+      ? initialItem.reminders
+      : initialItem?.reminderDays.map(days => ({ mode: "manual" as const, days }));
+    return existing?.length
+      ? existing.map((reminder, index) => ({ ...reminder, id: index + 1, saved: true }))
+      : [{ id: 1, mode: "relative", days: 7, saved: false }];
+  });
 
   const activeFrequency = recurring ? frequency : "Once";
   const maxMonths = activeFrequency === "Quarterly" ? 2 : activeFrequency === "Every 6 months" ? 5 : activeFrequency === "Yearly" ? 11 : 0;
@@ -379,7 +426,7 @@ function AddItemModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (e
 
   return <div className="modal-backdrop" onMouseDown={e => e.target === e.currentTarget && onClose()}>
     <div className="modal add-modal">
-      <div className="modal-header"><div><span className="modal-kicker">NEW ITEM · STEP {step} OF 2</span><h2>{step === 1 ? "What do you want to remember?" : "Set the date and reminders"}</h2></div><button type="button" className="close-button" onClick={onClose}>×</button></div>
+      <div className="modal-header"><div><span className="modal-kicker">{initialItem ? "EDIT ITEM" : "NEW ITEM"} · STEP {step} OF 2</span><h2>{step === 1 ? (initialItem ? "Edit item details" : "What do you want to remember?") : "Set the date and reminders"}</h2></div><button type="button" className="close-button" onClick={onClose}>×</button></div>
       <form onSubmit={onSubmit}>
         {step === 1 ? <div className="form-step">
           <label className="field"><span>ITEM NAME</span><input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Netflix, Passport, Car insurance" required autoFocus /></label>
@@ -388,10 +435,10 @@ function AddItemModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (e
           <div className="modal-footer"><span /><button type="button" className="primary-button" disabled={!name.trim()} onClick={() => setStep(2)}>Continue <span>→</span></button></div>
         </div> : <div className="form-step">
           <input type="hidden" name="name" value={name} /><input type="hidden" name="category" value={category} /><input type="hidden" name="person" value={person} /><input type="hidden" name="reminderDays" value={reminderDays.join(",")} /><input type="hidden" name="reminders" value={JSON.stringify(savedReminders.map(({ id: _id, saved: _saved, ...reminder }) => reminder))} />
-          <div className="two-fields"><label className="field"><span>ISSUE / START DATE</span><input name="startDate" type="date" /></label><label className="field"><span>NEXT EXPIRY / RENEWAL</span><input name="dueDate" type="date" required defaultValue="2026-08-30" /></label></div>
-          <div className="two-fields"><label className="field"><span>RENEWAL AMOUNT <em>OPTIONAL</em></span><input name="amount" type="number" min="0" placeholder="0" /></label><label className="field"><span>CURRENCY</span><select name="currency"><option>PKR</option><option>USD</option></select></label></div>
-          <label className="check-row"><span><strong>Recurring renewal</strong><small>Automatically calculate the next date</small></span><input name="recurring" type="checkbox" checked={recurring} onChange={e => setRecurring(e.target.checked)} /></label>
-          {recurring && <><label className="field"><span>FREQUENCY</span><select name="frequency" value={frequency} onChange={e => changeFrequency(e.target.value)}><option>Monthly</option><option>Quarterly</option><option>Every 6 months</option><option>Yearly</option><option>Custom</option></select></label><div className="field"><span>WHEN I RENEW LATE</span><label className="radio-card"><input type="radio" name="renewalRule" value="ask" defaultChecked /><span><strong>Ask me each time</strong><small>Recommended · choose the next date when you renew</small></span></label><label className="radio-card"><input type="radio" name="renewalRule" value="fixed" /><span><strong>Keep original schedule</strong><small>Stay anchored to the existing billing date</small></span></label><label className="radio-card"><input type="radio" name="renewalRule" value="actual" /><span><strong>Move to actual renewal date</strong><small>Start the next period from when you paid</small></span></label></div></>}
+          <div className="two-fields"><label className="field"><span>ISSUE / START DATE</span><input name="startDate" type="date" defaultValue={initialItem?.startDate || ""} /></label><label className="field"><span>NEXT EXPIRY / RENEWAL</span><input name="dueDate" type="date" required defaultValue={initialItem?.dueDate || new Date().toISOString().slice(0, 10)} /></label></div>
+          <div className="two-fields"><label className="field"><span>RENEWAL AMOUNT <em>OPTIONAL</em></span><input name="amount" type="number" min="0" placeholder="0" defaultValue={initialItem?.amount} /></label><label className="field"><span>CURRENCY</span><select name="currency" defaultValue={initialItem?.currency || "PKR"}><option>PKR</option><option>USD</option></select></label></div>
+          <label className="check-row"><span><strong>Recurring renewal</strong><small>Automatically calculate the next date</small></span><input className="switch-input" name="recurring" type="checkbox" checked={recurring} onChange={e => setRecurring(e.target.checked)} /><span className={`form-switch ${recurring ? "on" : ""}`} aria-hidden="true"><i /></span></label>
+          {recurring && <><label className="field"><span>FREQUENCY</span><select name="frequency" value={frequency} onChange={e => changeFrequency(e.target.value)}><option>Monthly</option><option>Quarterly</option><option>Every 6 months</option><option>Yearly</option><option>Custom</option></select></label><div className="field"><span>WHEN I RENEW LATE</span><label className="radio-card"><input type="radio" name="renewalRule" value="ask" defaultChecked={!initialItem || initialItem.renewalRule === "ask"} /><span><strong>Ask me each time</strong><small>Recommended · choose the next date when you renew</small></span></label><label className="radio-card"><input type="radio" name="renewalRule" value="fixed" defaultChecked={initialItem?.renewalRule === "fixed"} /><span><strong>Keep original schedule</strong><small>Stay anchored to the existing billing date</small></span></label><label className="radio-card"><input type="radio" name="renewalRule" value="actual" defaultChecked={initialItem?.renewalRule === "actual"} /><span><strong>Move to actual renewal date</strong><small>Start the next period from when you paid</small></span></label></div></>}
           {!recurring && <><input type="hidden" name="frequency" value="Once" /><input type="hidden" name="renewalRule" value="ask" /></>}
           <div className="field reminder-field"><span>REMINDERS</span>
             <div className="reminder-list">{reminders.map((reminder, index) => reminder.saved ? <div className="saved-reminder" key={reminder.id}><span className="reminder-number">{index + 1}</span><strong>{describeReminder(reminder)}</strong><button type="button" onClick={() => updateReminder(reminder.id, { saved: false })}>Edit</button><button type="button" className="remove-reminder" onClick={() => removeReminder(reminder.id)} aria-label="Remove reminder">×</button></div> : <div className="reminder-editor" key={reminder.id}>
@@ -407,8 +454,8 @@ function AddItemModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: (e
             {reminders.every(reminder => reminder.saved) && <button type="button" className="add-another-reminder" onClick={addReminder}><span>＋</span>Add another reminder</button>}
             {savedReminders.length === 0 && <small className="reminder-hint">Save at least one reminder to continue.</small>}
           </div>
-          <label className="field"><span>NOTES <em>OPTIONAL</em></span><textarea name="notes" placeholder="Anything useful for renewal…" /></label>
-          <div className="modal-footer"><button type="button" className="back-button" onClick={() => setStep(1)}>← Back</button><button className="primary-button" type="submit" disabled={savedReminders.length === 0 || reminders.some(reminder => !reminder.saved)}>Save item</button></div>
+          <label className="field"><span>NOTES <em>OPTIONAL</em></span><textarea name="notes" placeholder="Anything useful for renewal…" defaultValue={initialItem?.notes || ""} /></label>
+          <div className="modal-footer"><button type="button" className="back-button" onClick={() => setStep(1)}>← Back</button><button className="primary-button" type="submit" disabled={savedReminders.length === 0 || reminders.some(reminder => !reminder.saved)}>{initialItem ? "Save changes" : "Save item"}</button></div>
         </div>}
       </form>
     </div>
@@ -424,7 +471,7 @@ function RenewModal({ item, onClose, onComplete }: { item: RenewalItem; onClose:
   return <div className="modal-backdrop"><div className="modal renew-modal"><button className="close-button floating" onClick={onClose}>×</button><div className={`renew-hero ${item.accent}`}><span>{categoryGlyph[item.category]}</span></div><span className="modal-kicker">RECORD RENEWAL</span><h2>{item.name} renewed?</h2><p>We&apos;ll save today as the actual renewal date and preserve the original schedule in history.</p><div className="renew-summary"><div><small>SCHEDULED</small><strong>{humanDate(item.dueDate, true)}</strong></div><span>→</span><div><small>RENEWED</small><strong>Today</strong></div></div><div className="choice-list"><button className={choice === "fixed" ? "selected" : ""} onClick={() => setChoice("fixed")}><i /><span><strong>{humanDate(fixed, true)}</strong><small>Keep original schedule</small></span><b>Fixed</b></button><button className={choice === "actual" ? "selected" : ""} onClick={() => setChoice("actual")}><i /><span><strong>{humanDate(moved, true)}</strong><small>Start from today&apos;s renewal</small></span><b>Flexible</b></button><button className={choice === "custom" ? "selected" : ""} onClick={() => setChoice("custom")}><i /><span><strong>Choose another date</strong><small>Set the exact next due date</small></span></button></div>{choice === "custom" && <input className="custom-date" type="date" value={custom} onChange={e => setCustom(e.target.value)} />}<button className="primary-button full" onClick={() => onComplete(choice, custom)}>Record renewal</button></div></div>;
 }
 
-function DetailDrawer({ item, onClose, onRenew, onDelete }: { item: RenewalItem; onClose: () => void; onRenew: () => void; onDelete: () => void }) {
+function DetailDrawer({ item, onClose, onEdit, onRenew, onDelete }: { item: RenewalItem; onClose: () => void; onEdit: () => void; onRenew: () => void; onDelete: () => void }) {
   const reminderPlan = item.reminders?.length ? item.reminders.map(describeReminder).join(" · ") : item.reminderDays.map(d => `${d}d before`).join(" · ");
-  return <div className="drawer-backdrop" onMouseDown={e => e.target === e.currentTarget && onClose()}><aside className="drawer"><div className="drawer-top"><button className="close-button" onClick={onClose}>×</button><span className={`category-icon xl ${item.accent}`}>{categoryGlyph[item.category]}</span><span className="category-label">{item.category}</span><h2>{item.name}</h2><p>{item.person}</p></div><div className="due-feature"><small>NEXT {item.recurring ? "RENEWAL" : "EXPIRY"}</small><strong>{humanDate(item.dueDate, true)}</strong><span>{daysUntil(item.dueDate)} days from now</span></div><div className="detail-list"><div><span>Amount</span><strong>{item.amount ? money(item.amount, item.currency) : "Not set"}</strong></div><div><span>Frequency</span><strong>{item.frequency}</strong></div><div><span>Reminder plan</span><strong>{reminderPlan || "None"}</strong></div><div><span>Late renewal rule</span><strong>{item.renewalRule === "ask" ? "Ask each time" : item.renewalRule === "fixed" ? "Keep schedule" : "From actual date"}</strong></div></div>{item.notes && <div className="notes-box"><small>NOTES</small><p>{item.notes}</p></div>}<div className="drawer-actions"><button className="primary-button" onClick={onRenew}>✓ Mark renewed</button><button className="danger-button" onClick={onDelete}>Delete item</button></div></aside></div>;
+  return <div className="drawer-backdrop" onMouseDown={e => e.target === e.currentTarget && onClose()}><aside className="drawer"><div className="drawer-top"><button className="close-button" onClick={onClose}>×</button><span className={`category-icon xl ${item.accent}`}>{categoryGlyph[item.category]}</span><span className="category-label">{item.category}</span><h2>{item.name}</h2><p>{item.person}</p></div><div className="due-feature"><small>NEXT {item.recurring ? "RENEWAL" : "EXPIRY"}</small><strong>{humanDate(item.dueDate, true)}</strong><span>{daysUntil(item.dueDate)} days from now</span></div><div className="detail-list"><div><span>Amount</span><strong>{item.amount ? money(item.amount, item.currency) : "Not set"}</strong></div><div><span>Frequency</span><strong>{item.frequency}</strong></div><div><span>Reminder plan</span><strong>{reminderPlan || "None"}</strong></div><div><span>Late renewal rule</span><strong>{item.renewalRule === "ask" ? "Ask each time" : item.renewalRule === "fixed" ? "Keep schedule" : "From actual date"}</strong></div></div>{item.notes && <div className="notes-box"><small>NOTES</small><p>{item.notes}</p></div>}<div className="drawer-actions"><button className="primary-button" onClick={onRenew}>✓ Mark renewed</button><button className="secondary-button edit-drawer-button" onClick={onEdit}>Edit item</button><button className="danger-button" onClick={onDelete}>Delete item</button></div></aside></div>;
 }
