@@ -514,8 +514,8 @@ button, input, select, textarea { font-size: 1rem; }
 .dots { min-width: 44px; min-height: 44px; font-size: 1rem; }
 .timeline-row { grid-template-columns: 50px 42px 1fr auto 18px; gap: 14px; min-height: 80px; padding: 13px 24px; border-color: var(--line); }
 .date-tile { height: 50px; }
-.date-tile strong { font-size: 1.15rem; }
-.date-tile small { font-size: .68rem; }
+.date-tile strong { font-size: 1rem; line-height: 1; }
+.date-tile small { margin-top: 3px; font-size: .6rem; line-height: 1; }
 .timeline-info strong { font-size: 1rem; }
 .timeline-info small { font-size: .82rem; }
 .row-amount { font-size: .95rem; }
@@ -556,7 +556,7 @@ button, input, select, textarea { font-size: 1rem; }
 .weekdays { padding: 14px 0; background: #e8e2db; }
 .weekdays span { font-size: .75rem; letter-spacing: .08em; }
 .day { min-width: 0; min-height: 122px; padding: 10px; border-color: var(--line); }
-.day-number { width: 34px; height: 34px; font-size: .9rem; }
+.day-number { width: 34px; height: 34px; font-size: .82rem; }
 .calendar-event { padding: 8px; border-radius: 10px; font-size: .76rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .member-grid { gap: 18px; }
@@ -825,4 +825,49 @@ button, input, select, textarea { font-size: 1rem; }
   .mobile-nav .nav-glyph svg { width: 20px; height: 20px; }
   .calendar-event { padding-inline: 7px; }
   .calendar-grid > .day { min-width: 0; overflow: hidden; }
+}
+
+/* V1.5 — mobile category pills and precisely centred calendar arrows */
+.filter-row {
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: inline proximity;
+}
+
+.filter-row::-webkit-scrollbar { display: none; }
+
+.filter-row button {
+  flex: 0 0 auto;
+  max-width: none;
+  overflow: visible;
+  text-align: center;
+  scroll-snap-align: start;
+}
+
+.month-control button {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  padding: 0;
+  line-height: 0;
+}
+
+.month-control button svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 760px) {
+  .filter-row {
+    margin-inline: calc(-1 * clamp(18px, 5vw, 72px));
+    padding-inline: clamp(18px, 5vw, 72px);
+    scroll-padding-inline: clamp(18px, 5vw, 72px);
+  }
+
+  .filter-row::after {
+    content: "";
+    flex: 0 0 clamp(9px, 3vw, 18px);
+  }
 }

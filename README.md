@@ -4,9 +4,9 @@ An installable renewal and expiry tracker built for GitHub Pages + Supabase. It 
 
 ## Updating an existing installation
 
-This is the V1.3 responsive-icons update. Upload the contents of this package over the existing repository files and commit the changes. Keep your existing GitHub variables and Supabase project unchanged. GitHub Actions will redeploy automatically, and the updated service-worker cache will replace the older interface after the app is reopened or refreshed.
+This is the V1.5 mobile-controls update. Upload the contents of this package over the existing repository files and commit the changes. Keep your existing GitHub variables and Supabase project unchanged. GitHub Actions will redeploy automatically, and the updated service-worker cache will replace the older interface after the app is reopened or refreshed.
 
-V1.3 preserves the V1.2 warm smart-control design and category icons, replaces the remaining text symbols with consistent professional SVG controls, and prevents labels from escaping pills, badges, cards, navigation tabs, or calendar events on narrow screens. No database migration is required.
+V1.5 preserves the V1.4 balanced date typography, prevents category pills from shrinking or overlapping on narrow screens, and centres both calendar chevrons precisely inside their circular buttons. No database migration is required.
 
 ## 1. Create the Supabase database
 
