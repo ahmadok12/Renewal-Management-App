@@ -4,9 +4,9 @@ An installable renewal and expiry tracker built for GitHub Pages + Supabase. It 
 
 ## Updating an existing installation
 
-This is the V1.5 mobile-controls update. Upload the contents of this package over the existing repository files and commit the changes. Keep your existing GitHub variables and Supabase project unchanged. GitHub Actions will redeploy automatically, and the updated service-worker cache will replace the older interface after the app is reopened or refreshed.
+This is the V1.6 authentication update. Upload the contents of this package over the existing repository files and commit the changes. Keep your existing GitHub variables and Supabase project unchanged. GitHub Actions will redeploy automatically, and the updated service-worker cache will replace the older interface after the app is reopened or refreshed.
 
-V1.5 preserves the V1.4 balanced date typography, prevents category pills from shrinking or overlapping on narrow screens, and centres both calendar chevrons precisely inside their circular buttons. No database migration is required.
+V1.6 preserves the V1.5 mobile-control improvements, increases sign-up helper and confirmation-message text, and sends the exact deployed app URL with new-account confirmation emails. No database migration is required.
 
 ## 1. Create the Supabase database
 
@@ -47,15 +47,16 @@ npm run dev
 ## 4. Connect the live URL to Supabase Auth
 
 1. In Supabase, open **Authentication → URL Configuration**.
-2. Set **Site URL** to your exact GitHub Pages URL, including the repository path.
-3. Add the same URL with `/**` at the end under **Redirect URLs**.
+2. Set **Site URL** to your exact GitHub Pages URL, including the repository path and trailing `/`.
+3. Add that exact URL under **Redirect URLs**. You may also add the same URL with `**` at the end for any callback variation.
 4. Save.
 
 Example:
 
 ```text
 Site URL:      https://YOUR-USERNAME.github.io/renewal-reminder-app/
-Redirect URL:  https://YOUR-USERNAME.github.io/renewal-reminder-app/**
+Redirect URL:  https://YOUR-USERNAME.github.io/renewal-reminder-app/
+Optional:      https://YOUR-USERNAME.github.io/renewal-reminder-app/**
 ```
 
 ## 5. Verify the deployment

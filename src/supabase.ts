@@ -11,6 +11,13 @@ export const supabase = createClient(url, publishableKey, {
   auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
 });
 
+function appRedirectUrl() {
+  const redirectUrl = new URL(window.location.href);
+  redirectUrl.search = "";
+  redirectUrl.hash = "";
+  return redirectUrl.toString();
+}
+
 const toItem = (row: Record<string, any>) => ({
   id: row.id,
   name: row.name,
@@ -65,7 +72,14 @@ export const auth = {
     fail(error);
   },
   async signUp(email: string, password: string, fullName: string) {
-    const { error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName } } });
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullName },
+        emailRedirectTo: appRedirectUrl(),
+      },
+    });
     fail(error);
   },
   async signOut() {

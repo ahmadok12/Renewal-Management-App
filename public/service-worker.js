@@ -1,4 +1,4 @@
-const CACHE = "renewal-shell-v7-mobile-controls";
+const CACHE = "renewal-shell-v8-auth-redirect";
 const SHELL = ["./", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png"];
 
 self.addEventListener("install", event => {
